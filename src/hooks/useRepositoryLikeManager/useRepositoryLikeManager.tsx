@@ -8,7 +8,7 @@ type RepositoryState = {
 
 export const useRepositoryLikeManager = () => {
   const [repositoryLikes, setRepositorLikes] = useState<RepositoryState[]>([]);
-
+  // Verifying LocalStorage and seting local state
   useEffect(() => {
     const storage = localStorage.getItem("repositoryLikes");
 
