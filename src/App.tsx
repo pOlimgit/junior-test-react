@@ -1,48 +1,33 @@
-import { useEffect, useState } from "react";
 import styles from "./App.module.css";
 
-//Data model API
-interface IRepository {
-  id: number;
-  full_name: string;
-  owner: {
-    login: string;
-  };
-}
-
-//Local State
-type RepositoryProps = {
-  liked: boolean;
-} & IRepository; //Union of types
+import { useGitHubRepository } from "./hooks/useGitHubRepository";
+import { useRepositoryLikeManager } from "./hooks/useRepositoryLikeManager";
 
 export default function App() {
-  const [repos, setRepos] = useState<RepositoryProps[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    fetch("https://api.github.com/orgs/google/repos")
-      .then((r) => r.json())
-      .then((data) => {
-        setRepos(data);
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
+  const { repos, error, isLoading, refetch } = useGitHubRepository({
+    orgs: "google",
+  });
+  const { toggleLike, repositoryLikes } = useRepositoryLikeManager();
 
   return (
     <div>
       {isLoading && <p>Carregando ...</p>}
-      {error && <p>Erro ao carregar dados</p>}
+      {error && (
+        <div>
+          <p>Erro ao carregar dados</p>
+          <button onClick={refetch}>...recarregar dados</button>
+        </div>
+      )}
       {repos.map((repo) => {
+        const isLiked = repositoryLikes.find((r) => r.id === repo.id)?.liked;
+
         return (
           <div key={repo.id} className={styles.list}>
             <h3>{repo.full_name}</h3>
-            <span>by {repo.owner.login}</span>
+            <span>by {repo.owner.login}&nbsp;</span>
+            <button onClick={() => toggleLike(repo.id)}>
+              {isLiked ? "don't like" : "like"}
+            </button>
           </div>
         );
       })}
